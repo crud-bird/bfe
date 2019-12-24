@@ -21,10 +21,12 @@ type RequestStat struct {
 	BackendEnd   time.Time
 
 	ResponseStart time.Time
-	ResponseENs   time.Time
+	ResponseEnd   time.Time
+
+	BackendFirst time.Time
 
 	HeaderLenIn  int
-	BodyLenIm    int
+	BodyLenIn    int
 	HeaderLenOut int
 	BodyLenOut   int
 

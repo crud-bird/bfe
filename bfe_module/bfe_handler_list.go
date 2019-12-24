@@ -3,6 +3,7 @@ package bfe_module
 import (
 	"container/list"
 	"fmt"
+
 	"github.com/crud-bird/bfe/bfe_basic"
 	"github.com/crud-bird/bfe/bfe_http"
 	"github.com/sirupsen/logrus"

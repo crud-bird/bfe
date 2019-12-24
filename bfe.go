@@ -22,9 +22,9 @@ var version string
 
 func main() {
 	var (
-		err       error
-		config    bfe_conf.BfeConfig
-		logSwitch string
+		err    error
+		config bfe_conf.BfeConfig
+		// logSwitch string
 	)
 
 	flag.Parse()

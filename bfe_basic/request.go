@@ -54,7 +54,7 @@ type Request struct {
 	ReqBody       []byte
 	ReqBodyPeeked bool
 
-	ROute RequestRoute
+	Route RequestRoute
 
 	Tags RequestTags
 
