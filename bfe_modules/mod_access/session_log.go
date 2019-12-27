@@ -2,6 +2,7 @@ package mod_access
 
 import (
 	"bytes"
+	"encoding/hex"
 	"errors"
 	"github.com/crud-bird/bfe/bfe_basic"
 )
@@ -50,4 +51,101 @@ func onLogFmtSesErrorCode(m *ModuleAccess, logItem *LogFmtItem, buff *bytes.Buff
 	return nil
 }
 
-// todo
+func onLogFmtSesIsSecure(m *ModuleAccess, logItem *LogFmtItem, buff *bytes.Buffer, session *bfe_basic.Session) error {
+	if session == nil {
+		return errors.New("session is nil")
+	}
+
+	msg := fmt.Sprintf("%v", session.IsSecure)
+	buff.WriteString(msg)
+
+	return nil
+}
+
+func onLogFmtSesKeepAliveNum(m *ModuleAccess, logItem *LogFmtItem, buff *bytes.Buffer, session *bfe_basic.Session) error {
+	if session == nil {
+		return errors.New("session is nil")
+	}
+
+	buff.WriteString(fmt.Sprintf("%d", session.ReqNum))
+
+	return nil
+}
+
+func onLogFmtSesOverhead(m *ModuleAccess, logItem *LogFmtItem, buff *bytes.Buffer, session *bfe_basic.Session) error {
+	if session == nil {
+		return errors.New("session is nil")
+	}
+
+	buff.WriteString(fmt.Sprintf("%s", session.Overhead.String()))
+
+	return nil
+}
+
+func onLogFmtSesReadTotal(m *ModuleAccess, logItem *LogFmtItem, buff *bytes.Buffer, session *bfe_basic.Session) error {
+	if session == nil {
+		return errors.New("session is nil")
+	}
+
+	buff.WriteString(fmt.Sprintf("%d", session.ReadTotal))
+
+	return nil
+}
+
+func onLogFmtSesTLSClientRandom(m *ModuleAccess, logItem *LogFmtItem, buff *bytes.Buffer, session *bfe_basic.Session) error {
+	if session == nil {
+		return errors.New("session is nil")
+	}
+
+	msg := "-"
+	if session.TlsState != nil {
+		msg = hex.EncodeToString(session.TlsState.ClientRandom)
+	}
+	buff.WriteString(msg)
+
+	return nil
+}
+
+func onLogFmtSesTLSServerRandom(m *ModuleAccess, logItem *LogFmtItem, buff *bytes.Buffer, session *bfe_basic.Session) error {
+	if session == nil {
+		return errors.New("session is nil")
+	}
+
+	msg := "-"
+	if session.TlsState != nil {
+		msg = hex.EncodeToString(session.TlsState.ServerRandom)
+	}
+	buff.WriteString(msg)
+
+	return nil
+}
+
+func onLogFmtSesUse100(m *ModuleAccess, logItem *LogFmtItem, buff *bytes.Buffer, session *bfe_basic.Session) error {
+	if session == nil {
+		return errors.New("session is nil")
+	}
+
+	buff.WriteString(fmt.Sprintf("%v", session.Use100Continue))
+
+	return nil
+}
+
+func onLogFmtSesWriteTotal(m *ModuleAccess, logItem *LogFmtItem, buff *bytes.Buffer, session *bfe_basic.Session) error {
+	if session == nil {
+		return errors.New("session is nil")
+	}
+
+	buff.WriteString(fmt.Sprintf("%d", session.WriteTotal))
+
+	return nil
+}
+
+func onLogFmtSesStartTime(m *ModuleAccess, logItem *LogFmtItem, buff *bytes.Buffer, session *bfe_basic.Session) error {
+	if session == nil {
+		return errors.New("session is nil")
+	}
+
+	buff.WriteString(session.StartTime.String())
+
+	return nil
+}

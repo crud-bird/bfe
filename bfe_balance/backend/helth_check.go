@@ -153,18 +153,18 @@ func CheckConnect(backend *BfeBackend, checkConf *cluster_conf.BackendCheck) (bo
 	}
 }
 
-type CheckConfFether func(string) *cluster_conf.BackendCheck
+type CheckConfFetcher func(string) *cluster_conf.BackendCheck
 
-var checkconffether CheckConfFether
+var checkconfFetcher CheckConfFetcher
 
 func getCheckConf(cluster string) *cluster_conf.BackendCheck {
-	if checkconffether == nil {
+	if checkconfFetcher == nil {
 		return nil
 	}
 
-	return checkconffether(cluster)
+	return checkconfFetcher(cluster)
 }
 
-func SetCeckCOnfFether(fether CheckConfFether) {
-	checkconffether = fether
+func SetCheckConfFetcher(fetcher CheckConfFetcher) {
+	checkconfFetcher = fetcher
 }

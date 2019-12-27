@@ -116,3 +116,13 @@ func (req *Request) CachedCookie() bfe_http.CookieMap {
 
 	return req.CookieMap
 }
+
+func (req *Request) Cookie(name string) (*bfe_http.Cookie, bool) {
+	if req.CookieMap == nil {
+		req.CachedCookie()
+	}
+
+	return req.CookieMap.Get(name)
+}
+
+// todo

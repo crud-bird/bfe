@@ -37,7 +37,7 @@ func (h Header) Del(key string) {
 }
 
 func (h Header) Write(w io.Writer) error {
-	return h.writesub
+	return h.WriteSubset(w, nil)
 }
 
 var timeFormats = []string{

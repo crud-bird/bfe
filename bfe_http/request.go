@@ -3,9 +3,12 @@ package bfe_http
 import (
 	"errors"
 	"fmt"
+	// 	"github.com/crud-bird/bfe/bfe_bufio"
 	"github.com/crud-bird/bfe/bfe_net/textproto"
 	"github.com/crud-bird/bfe/bfe_tls"
 	"io"
+	"mime"
+	"mime/multipart"
 	"net"
 	"net/url"
 	"time"
@@ -69,6 +72,7 @@ type Request struct {
 	Host             string
 	Form             url.Values
 	PostForm         url.Values
+	MultipartForm    *multipart.Form
 	Trailer          Header
 	RemoteAddr       string
 	RequestURI       string
@@ -93,3 +97,162 @@ func (r *Request) ProtoAtLeast(major, minor int) bool {
 func (r *Request) UserAgent() string {
 	return r.Header.Get("User-Agent")
 }
+
+func (r *Request) Cookies() []*Cookie {
+	return readCookies(r.Header, "")
+}
+
+var ErrNoCookie = errors.New("http: named cookie not present")
+
+func (r *Request) Cookie(name string) (*Cookie, error) {
+	if cookies := readCookies(r.Header, name); len(cookies) > 0 {
+		return cookies[0], nil
+	}
+
+	return nil, ErrNoCookie
+}
+
+func (r *Request) AddCookie(c *Cookie) {
+	s := fmt.Sprintf("%s=%s", sanitizeCookieName(c.Name), sanitizeCookieValue(c.Value))
+	if c := r.Header.Get("Cookie"); c != "" {
+		r.Header.Set("Cookie", c+"; "+s)
+	} else {
+		r.Header.Set("Cookie", s)
+	}
+}
+
+func (r *Request) Refer() string {
+	return r.Header.Get("Referer")
+}
+
+var multipartByReader = &multipart.Form{
+	Value: make(map[string][]string),
+	File:  make(map[string][]*multipart.FileHeader),
+}
+
+func (r *Request) MultipartReader() (*multipart.Reader, error) {
+	if r.MultipartForm == multipartByReader {
+		return nil, errors.New("http: MultipartReader called twice")
+	}
+
+	if r.MultipartForm != nil {
+		return nil, errors.New("http: multipart handled by ParseMultipartForm")
+	}
+
+	r.MultipartForm = multipartByReader
+	return r.multipartReader()
+}
+
+func (r *Request) multipartReader() (*multipart.Reader, error) {
+	v := r.Header.Get("Content-Type")
+	if v == "" {
+		return nil, ErrNotMultipart
+	}
+
+	d, params, err := mime.ParseMediaType(v)
+	if err != nil || d != "multipart/form-data" {
+		return nil, ErrNotMultipart
+	}
+
+	boundary, ok := params["boundary"]
+	if !ok {
+		return nil, ErrMissingBoundary
+	}
+
+	return multipart.NewReader(r.Body, boundary), nil
+}
+
+func valueOrDefault(value, def string) string {
+	if value != "" {
+		return value
+	}
+
+	return def
+}
+
+const defaultUserAgent = "Go 1.1 package http"
+
+// func (r *Request) Write(w io.Writer) error {
+// 	return r.write(w, false, nil)
+// }
+//
+// func (r *Request) WriteProxy(w io.Writer) error {
+// 	return r.write(w, true, nil)
+// }
+
+// func (r *Request) write(w io.Writer, usingProxy bool, header Header) error {
+// 	host := r.Host
+// 	if host == "" {
+// 		if r.URL == nil {
+// 			return errors.New("http: Request.Write on Request without host or url")
+// 		}
+// 		host = r.URL.Host
+// 	}
+//
+// 	ruri := r.URL.RequestURI()
+// 	if usingProxy && r.URL.Scheme != "" && r.URL.Opaque == "" {
+// 		ruri = r.URL.Scheme + "://" +host + ruri
+// 	} else if r.Method == "CONNECT" && r.URL.Path == "" {
+// 		ruri = host
+// 	} else {
+// 		rawurl, err := url.ParseRequestURI(r.RequestURI)
+// 		if err == nil && rawurl.RequestURI() == ruri {
+// 			if rawurl.Scheme == "" && rawurl.Host == "" &&rawurl.Opaque == "" {
+// 				ruri = r.RequestURI
+// 			}
+// 		}
+// 	}
+//
+// 	var bw *bfe_bufio.Writer
+//
+// 	switch w.(type) {
+// 	case io.ByteWriter:
+// 	case *MaxLatencyWriter:
+// 	default:
+// 		bw = bfe_bufio.NewWriter(w)
+// 		w = bw
+// 	}
+//
+// 	fmt.Fprintf(w, "%s %s HTTP/1.1\r\n", valueOrDefault(r.Method, "GET"), ruri)
+// 	fmt.Fprintf(w, "Host: %s\r\n", host)
+//
+// 	tw, err := newTransferWriter(r)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	err = tw.WriteHeader(w)
+// 	if err != nil {
+// 		return err
+// 	}
+//
+// 	if err = r.Header.WriteSubset(w, ReqWriteExcludeHeader); err != nil {
+// 		return err
+// 	}
+//
+// 	if header != nil {
+// 		if err = header.Write(w); err != nil {
+// 			return err
+// 		}
+// 	}
+//
+// 	io.WriteString(w, "\r\n")
+//
+// 	if rbw, ok := w.(Flusher); ok {
+// 		if err = rbw.Flush(); err !=nil {
+// 			return err
+// 		}
+// 	}
+//
+// 	n, err := tw.WriteBody(w)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	r.State.BodySize = uint32(n)
+//
+// 	if bw != nil {
+// 		return bw.Flush()
+// 	}
+//
+// 	return nil
+// }
+// todo

@@ -64,10 +64,10 @@ type ClusterBasicConf struct {
 	TimeoutWriteClient     *int
 	TimeoutReadClientAgain *int
 
-	ReqWriteBUfferSize *int
-	ReqFlushInterval   *int
-	ResFlushInterval   *int
-	CanceOnClientClose *bool
+	ReqWriteBUfferSize  *int
+	ReqFlushInterval    *int
+	ResFlushInterval    *int
+	CancelOnClientClose *bool
 }
 
 type ClusterConf struct {
@@ -313,9 +313,9 @@ func ClusterBasicConfCheck(conf *ClusterBasicConf) error {
 		conf.ResFlushInterval = &tmp
 	}
 
-	if conf.CanceOnClientClose == nil {
+	if conf.CancelOnClientClose == nil {
 		tmp := false
-		conf.CanceOnClientClose = &tmp
+		conf.CancelOnClientClose = &tmp
 	}
 
 	return nil
