@@ -125,4 +125,37 @@ func (req *Request) Cookie(name string) (*bfe_http.Cookie, bool) {
 	return req.CookieMap.Get(name)
 }
 
-// todo
+func (req *Request) SetRequestTransport(backend *backend.BfeBackend, transport bfe_http.RoundTripper) {
+	req.Trans.Backend = backend
+	req.Trans.Transport = transport
+}
+
+func (req *Request) Protocali() string {
+	if req.Session.IsSecure {
+		return req.Session.Proto
+	}
+
+	return req.HttpRequest.Proto
+}
+
+func (req *Request) AddTags(name string, ntags []string) {
+	if len(ntags) == 0 {
+		return
+	}
+
+	tags := req.Tags.TagTable[name]
+	tags = append(tags, ntags...)
+	req.Tags.TagTable[name] = tags
+}
+
+func (req *Request) GetTags(name string) []string {
+	return req.Tags.TagTable[name]
+}
+
+func (req *Request) SetContext(key, val interface{}) {
+	req.Context[key] = val
+}
+
+func (req *Request) GetContext(key interface{}) interface{} {
+	return req.Context[key]
+}

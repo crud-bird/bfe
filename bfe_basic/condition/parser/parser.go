@@ -97,5 +97,3 @@ func Parse(condStr string) (Node, []*Ident, error) {
 
 	return p.ast, p.identList, nil
 }
-
-//todo

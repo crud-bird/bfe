@@ -1,9 +1,11 @@
 package route_rule_conf
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/crud-bird/bfe/bfe_basic/condition"
+	"os"
 )
 
 type RouteRule struct {
@@ -72,4 +74,34 @@ func convert(fileConf *RouteTableFile) (*RouteTableConf, error) {
 	return conf, nil
 }
 
-// todo
+func (conf *RouteTableConf) LoadAndCheck(filename string) (string, error) {
+	var fileConf RouteTableFile
+	file, err := os.Open("filename")
+	if err != nil {
+		return "", err
+	}
+	defer file.Close()
+
+	decoder := json.NewDecoder(file)
+	if err := decoder.Decode(&fileConf); err != nil {
+		return "", err
+	}
+
+	pConf, err := convert(&fileConf)
+	if err != nil {
+		return "", err
+	}
+
+	*conf = *pConf
+
+	return conf.Version, nil
+}
+
+func RouteConfLoad(filename string) (*RouteTableConf, error) {
+	var conf RouteTableConf
+	if _, err := conf.LoadAndCheck(filename); err != nil {
+		return nil, err
+	}
+
+	return &conf, nil
+}
